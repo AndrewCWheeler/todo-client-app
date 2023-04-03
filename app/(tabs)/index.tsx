@@ -1,34 +1,32 @@
-import { useState } from 'react';
 import { StyleSheet, FlatList } from 'react-native';
 import { Text, View } from '../../components/Themed';
-import ToDoItem from '../../components/ToDoItem';
+import ProjectItem from '../../components/ProjectItem';
+import { useState } from 'react';
 
-export default function TabOneScreen() {
-  const [todos, setTodos] = useState([
+export default function index() {
+  const [projects, setProjects] = useState([
     {
       id: '1',
-      content: 'Buy milk',
-      isCompleted: false,
+      title: 'Project 1',
+      createdAt: '2d',
     },
     {
       id: '2',
-      content: 'Buy cereal',
-      isCompleted: false,
+      title: 'Project 2',
+      createdAt: '2d',
     },
     {
       id: '3',
-      content: 'Pour milk',
-      isCompleted: false,
+      title: 'Project 3',
+      createdAt: '2d',
     },
   ]);
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-
+      {/* Project Task List  */}
       <FlatList
-        data={todos}
-        renderItem={({ item }) => <ToDoItem todo={item} />}
+        data={projects}
+        renderItem={({ item }) => <ProjectItem project={item} />}
         style={{ width: '100%' }}
       />
     </View>
@@ -39,10 +37,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    padding: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    justifyContent: 'center',
   },
 });

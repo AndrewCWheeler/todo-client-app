@@ -1,5 +1,11 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, View, TextInput } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  StyleSheet,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import Checkbox from '../Checkbox';
 
 interface ToDoItemProps {
@@ -8,11 +14,15 @@ interface ToDoItemProps {
     content: string;
     isCompleted: boolean;
   };
+  onSubmit: () => void;
 }
 
-const ToDoItem = ({ todo }: ToDoItemProps) => {
+const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   const [isChecked, setIsChecked] = useState(false);
   const [content, setContent] = useState('');
+
+  const input = useRef();
+
   useEffect(() => {
     if (!todo) {
       return;
@@ -21,21 +31,46 @@ const ToDoItem = ({ todo }: ToDoItemProps) => {
     setContent(todo.content);
   }, [todo]);
 
+  useEffect(() => {
+    // get focus on input
+    if (input.current) {
+      input?.current?.focus();
+    }
+  }, [input]);
+
+  const onKeyPress = ({ nativeEvent }: any) => {
+    console.log(nativeEvent);
+    if (nativeEvent.key === 'Backspace' && content === '') {
+      // Delete item
+      console.warn('Delete item');
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Checkbox
-        isChecked={isChecked}
-        onPress={() => {
-          setIsChecked(!isChecked);
-        }}
-      />
-      <TextInput
-        value={content}
-        onChangeText={setContent}
-        style={styles.textInput}
-        multiline
-      />
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
+        <Checkbox
+          isChecked={isChecked}
+          onPress={() => {
+            setIsChecked(!isChecked);
+          }}
+        />
+        <TextInput
+          ref={input}
+          value={content}
+          onChangeText={setContent}
+          style={styles.textInput}
+          multiline
+          onSubmitEditing={onSubmit}
+          blurOnSubmit
+          onKeyPress={() => onKeyPress}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -43,9 +78,10 @@ export default ToDoItem;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 3,
+    marginVertical: 1,
     padding: 12,
   },
   textInput: {
