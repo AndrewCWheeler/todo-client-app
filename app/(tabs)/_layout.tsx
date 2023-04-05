@@ -1,8 +1,10 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
+import { Link, Tabs, useRouter } from 'expo-router';
 import { Pressable, useColorScheme } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Colors from '../../constants/Colors';
+import { Text } from '../../components/Themed';
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -16,6 +18,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
 
   return (
     <Tabs
@@ -45,10 +48,36 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ToDoScreen"
+        name="todo-screen"
         options={{
           title: 'ToDo',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          headerLeft: () => (
+            <Pressable
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+              onPress={() => router.push('/(tabs)')}
+            >
+              {({ pressed }) => (
+                <>
+                  <MaterialCommunityIcons
+                    name="arrow-left-circle"
+                    size={25}
+                    color={Colors[colorScheme ?? 'light'].text}
+                    style={{ marginLeft: 15, opacity: pressed ? 0.5 : 1 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      marginLeft: 12,
+                      opacity: pressed ? 0.5 : 1,
+                    }}
+                  >
+                    Projects
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          ),
         }}
       />
     </Tabs>

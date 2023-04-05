@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, FlatList, TextInput } from 'react-native';
-import { Text, View } from '../../components/Themed';
+import { View } from '../../components/Themed';
 import ToDoItem from '../../components/ToDoItem';
 
 let id = '4';
 
-export default function ProjectsScreen() {
+export default function ToDoScreen() {
   const [title, setTitle] = useState('');
   const [todos, setTodos] = useState([
     {

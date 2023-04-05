@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './styles';
 import { Text, View } from '../../components/Themed';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation, useSearchParams, useRouter } from 'expo-router';
 
 interface ProjectItemProps {
   project: {
@@ -12,9 +13,18 @@ interface ProjectItemProps {
   };
 }
 
+interface Nav {
+  path: string[];
+}
+
 const ProjectItem = ({ project }: ProjectItemProps) => {
+  const navigation = useNavigation();
+  const params = useSearchParams();
+  const router = useRouter();
+  const { id = project.id } = params;
+
   const onPress = () => {
-    console.log(`open project ${project.title}`);
+    router.push({ pathname: '/todo-screen', params: { id } });
   };
   return (
     <Pressable onPress={onPress} style={styles.root}>

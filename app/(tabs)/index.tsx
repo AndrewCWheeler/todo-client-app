@@ -1,5 +1,5 @@
 import { StyleSheet, FlatList } from 'react-native';
-import { Text, View } from '../../components/Themed';
+import { View } from '../../components/Themed';
 import ProjectItem from '../../components/ProjectItem';
 import { useState } from 'react';
 

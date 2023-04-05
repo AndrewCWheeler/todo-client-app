@@ -21,7 +21,7 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   const [isChecked, setIsChecked] = useState(false);
   const [content, setContent] = useState('');
 
-  const input = useRef();
+  const input = useRef<any>();
 
   useEffect(() => {
     if (!todo) {
