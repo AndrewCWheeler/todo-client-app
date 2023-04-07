@@ -2,7 +2,8 @@ import { useRouter, useSegments } from 'expo-router';
 import React from 'react';
 
 interface User {
-  id: null;
+  id?: string | null | undefined;
+  token?: string | null | undefined;
 }
 
 interface AuthContextType {
@@ -10,7 +11,11 @@ interface AuthContextType {
   signOut: () => void;
   user: User;
 }
-const AuthContext = React.createContext(null);
+const AuthContext = React.createContext<AuthContextType>({
+  signIn: () => {},
+  signOut: () => {},
+  user: { id: null, token: null },
+});
 
 // This hook can be used to access the user info.
 export function useAuth() {
@@ -18,13 +23,12 @@ export function useAuth() {
 }
 
 // This hook will protect the route access based on user authentication.
-function useProtectedRoute(user) {
+function useProtectedRoute(user: User) {
   const segments = useSegments();
   const router = useRouter();
 
   React.useEffect(() => {
     const inAuthGroup = segments[0] === '(auth)';
-    // router.replace('splash');
     if (
       // If the user is not signed in and the initial segment is not anything in the auth group.
       !user &&
@@ -40,15 +44,18 @@ function useProtectedRoute(user) {
 }
 
 export function Provider(props: any) {
-  const [user, setAuth] = React.useState(null);
+  const [user, setAuth] = React.useState({
+    id: null,
+    token: null,
+  });
 
   useProtectedRoute(user);
 
   return (
     <AuthContext.Provider
       value={{
-        signIn: () => setAuth({}),
-        signOut: () => setAuth(null),
+        signIn: () => setAuth(props),
+        signOut: () => setAuth(user),
         user,
       }}
     >
