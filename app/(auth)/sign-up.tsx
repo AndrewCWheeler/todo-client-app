@@ -1,8 +1,9 @@
-import { StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { View, TextInput, Text } from '../../components/Themed';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SIGN_UP_MUTATION = gql`
   mutation signUp($email: String!, $password: String!, $name: String!) {
@@ -17,6 +18,7 @@ const SIGN_UP_MUTATION = gql`
 `;
 
 const SignUp = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -26,15 +28,23 @@ const SignUp = () => {
   // { data, error, loading }
   const [signUp, { data, error, loading }] = useMutation(SIGN_UP_MUTATION);
 
+  if (error) {
+    Alert.alert('Error signing up. Try again');
+  }
+
+  if (data) {
+    console.log(data);
+    // save token
+    AsyncStorage.setItem('token', data.signUp.token).then(() => {
+      console.log(`data.signUp: ${data.signUp.values}`);
+      // router.push('/(tabs)');
+    });
+  }
+
   const onSubmit = () => {
-    signUp({ variables: { name, email, password } })
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((err) => console.log(err));
+    signUp({ variables: { name, email, password } });
   };
 
-  const router = useRouter();
   return (
     <View style={{ padding: 20 }}>
       <TextInput

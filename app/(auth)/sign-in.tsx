@@ -1,17 +1,49 @@
-import { Pressable } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { Pressable, StyleSheet, Alert, useColorScheme } from 'react-native';
 import { View, Text, TextInput } from '../../components/Themed';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { useAuth } from '../../context/auth';
+import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Counter } from '../features/counter/Counter';
+
+const SIGN_IN_MUTATION = gql`
+  mutation signIn($email: String!, $password: String!) {
+    signIn(input: { email: $email, password: $password }) {
+      token
+      user {
+        id
+        name
+        email
+      }
+    }
+  }
+`;
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signIn, { data, error, loading }] = useMutation(SIGN_IN_MUTATION);
 
-  const { signIn } = useAuth();
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Invalid credentials. Try again');
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (data) {
+      // save token
+      AsyncStorage.setItem('token', data.signIn.token)
+        .then(() => {
+          console.log(`data.signIn: ${data.signIn.token}`);
+        })
+        .catch((err) => console.log(err));
+    }
+  }, [data]);
+
   const onSubmit = () => {
     // submit
-    signIn();
+    signIn({ variables: { email, password } });
   };
   const router = useRouter();
   return (
@@ -70,6 +102,8 @@ const SignIn = () => {
           Don't have an account? Sign Up
         </Text>
       </Pressable>
+
+      <Counter />
     </View>
   );
 };
