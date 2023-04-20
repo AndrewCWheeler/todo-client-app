@@ -1,34 +1,55 @@
-import { StyleSheet, FlatList } from 'react-native';
+import { useEffect, useState } from 'react';
 import { View } from '../../components/Themed';
+import { ActivityIndicator, Alert, StyleSheet, FlatList } from 'react-native';
 import ProjectItem from '../../components/ProjectItem';
-import { useState } from 'react';
+import { useQuery, gql } from '@apollo/client';
+import {
+  selectAllProjects,
+  setProjects,
+} from '../features/project/projectSlice';
+import { useAppDispatch, useAppSelector } from '../hooks';
 
-export default function index() {
-  const [projects, setProjects] = useState([
-    {
-      id: '1',
-      title: 'Project 1',
-      createdAt: '2d',
-    },
-    {
-      id: '2',
-      title: 'Project 2',
-      createdAt: '2d',
-    },
-    {
-      id: '3',
-      title: 'Project 3',
-      createdAt: '2d',
-    },
-  ]);
+const MY_PROJECTS = gql`
+  query myTaskLists {
+    myTaskLists {
+      id
+      title
+      createdAt
+    }
+  }
+`;
+
+export default function ProjectScreen() {
+  const { projects, status } = useAppSelector(selectAllProjects);
+  const dispatch = useAppDispatch();
+  // const [currProjects, setCurrProjects] = useState([]);
+
+  const { data, error, loading } = useQuery(MY_PROJECTS);
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Error fetching project', error.message);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (data) {
+      dispatch(setProjects(data.myTaskLists));
+    }
+    console.log(data);
+  }, [data]);
+
   return (
     <View style={styles.container}>
-      {/* Project Task List  */}
-      <FlatList
-        data={projects}
-        renderItem={({ item }) => <ProjectItem project={item} />}
-        style={{ width: '100%' }}
-      />
+      {status === 'loading' ? (
+        <ActivityIndicator />
+      ) : (
+        <FlatList
+          data={projects}
+          renderItem={({ item }) => <ProjectItem project={item} />}
+          style={{ width: '100%' }}
+        />
+      )}
     </View>
   );
 }
@@ -36,7 +57,7 @@ export default function index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
   },
 });

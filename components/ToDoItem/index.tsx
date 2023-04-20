@@ -1,12 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  View,
   StyleSheet,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
+  useColorScheme,
+  TextInput,
 } from 'react-native';
+import { Text, View } from '../Themed';
 import Checkbox from '../Checkbox';
+import { Ionicons } from '@expo/vector-icons';
+import { useMutation, gql } from '@apollo/client';
+
+const UPDATE_TODO = gql`
+  mutation updateToDo($id: ID!, $content: String, $isCompleted: Boolean) {
+    updateToDo(id: $id, content: $content, isCompleted: $isCompleted) {
+      id
+      createdAt
+      content
+      taskList {
+        id
+        title
+        todos {
+          id
+          content
+          isCompleted
+        }
+      }
+    }
+  }
+`;
 
 interface ToDoItemProps {
   todo: {
@@ -20,8 +42,20 @@ interface ToDoItemProps {
 const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   const [isChecked, setIsChecked] = useState(false);
   const [content, setContent] = useState('');
-
+  const scheme = useColorScheme();
   const input = useRef<any>();
+
+  const [updateItem] = useMutation(UPDATE_TODO);
+
+  const callUpdateItem = () => {
+    updateItem({
+      variables: {
+        id: todo.id,
+        content,
+        isCompleted: isChecked,
+      },
+    });
+  };
 
   useEffect(() => {
     if (!todo) {
@@ -53,22 +87,55 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
       style={{ flex: 1 }}
     >
       <View style={styles.container}>
-        <Checkbox
-          isChecked={isChecked}
-          onPress={() => {
-            setIsChecked(!isChecked);
-          }}
-        />
-        <TextInput
-          ref={input}
-          value={content}
-          onChangeText={setContent}
-          style={styles.textInput}
-          multiline
-          onSubmitEditing={onSubmit}
-          blurOnSubmit
-          onKeyPress={() => onKeyPress}
-        />
+        <View style={styles.item}>
+          <View style={styles.row}>
+            <Checkbox
+              isChecked={isChecked}
+              onPress={() => {
+                setIsChecked(!isChecked);
+              }}
+            />
+            <TextInput
+              ref={input}
+              value={content}
+              onChangeText={setContent}
+              style={styles.textInput}
+              multiline
+              onSubmitEditing={onSubmit}
+              onEndEditing={callUpdateItem}
+              blurOnSubmit
+              onKeyPress={(e) => onKeyPress(e)}
+            />
+          </View>
+          <View style={styles.smallRow}>
+            <View
+              style={{ paddingLeft: 33, display: 'flex', flexDirection: 'row' }}
+            >
+              <Ionicons
+                style={styles.calendarIcon}
+                name="calendar-outline"
+                size={12}
+                // color={scheme === 'dark' ? 'lightgreen' : 'black'}
+              />
+              <Text style={styles.text}>3:00 PM</Text>
+            </View>
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons
+                name="pricetag-outline"
+                size={12}
+                color={scheme === 'dark' ? 'orange' : 'black'}
+              />
+
+              <Text style={{ fontSize: 12, marginLeft: 3 }}>Category</Text>
+            </View>
+          </View>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -79,15 +146,44 @@ export default ToDoItem;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 1,
-    padding: 12,
+    border: 2,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  item: {
+    display: 'flex',
+    flexDirection: 'column',
+    // alignItems: 'flex-start',
+    height: 60,
+    borderBottomColor: '#3e3e3e',
+    borderBottomWidth: 0.5,
+    padding: 6,
   },
   textInput: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 14,
     color: '#eee',
-    marginLeft: 12,
+    marginLeft: 9,
+    textAlignVertical: 'top',
+  },
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 3,
+  },
+  smallRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  text: {
+    fontSize: 12,
+    marginLeft: 3,
+    color: '#4ffa7b',
+  },
+  calendarIcon: {
+    color: '#4ffa7b',
   },
 });

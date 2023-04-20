@@ -7,7 +7,7 @@ import {
 } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Pressable, Alert } from 'react-native';
 // import { Provider } from '../context/auth';
 import { ApolloProvider } from '@apollo/client';
 import { client } from '../apollo';
@@ -16,6 +16,8 @@ import { store } from '../app/store';
 import { useAppSelector } from '../app/hooks';
 import { selectUser, selectToken } from '../app/(auth)/authSlice';
 import { useRouter } from 'expo-router';
+import { AntDesign } from '@expo/vector-icons';
+import Colors from '../constants/Colors';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -24,7 +26,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(auth)/sign-in',
+  initialRouteName: '(tabs)',
 };
 
 export default function RootLayout() {
@@ -54,19 +56,50 @@ function RootLayoutNav() {
   const token = useAppSelector(selectToken);
 
   useEffect(() => {
-    console.log(`token: ${token}`);
     if (token !== null) {
-      router.replace('(tabs)');
-    } else router.replace('(auth)/sign-in');
+      router.replace('/(tabs)');
+    } else router.replace('/(auth)/sign-in');
   }, [token]);
 
   return (
     <ApolloProvider client={client}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(auth)/sign-in" options={{ title: 'Sign In' }} />
+          <Stack.Screen
+            name="(auth)/sign-in"
+            options={{
+              title: 'Sign In',
+              headerBackVisible: false,
+            }}
+          />
           <Stack.Screen name="(auth)/sign-up" options={{ title: 'Sign Up' }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: true }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              title: 'Projects',
+              headerShown: false,
+              headerBackVisible: false,
+            }}
+          />
+          <Stack.Screen
+            name="screens/todo-screen"
+            options={{
+              title: 'ToDo',
+              headerShown: true,
+              headerRight: () => (
+                <Pressable onPress={() => Alert.alert('Create New ToDo')}>
+                  {({ pressed }) => (
+                    <AntDesign
+                      name="plus"
+                      size={24}
+                      color={Colors[colorScheme ?? 'light'].text}
+                      style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+                    />
+                  )}
+                </Pressable>
+              ),
+            }}
+          />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

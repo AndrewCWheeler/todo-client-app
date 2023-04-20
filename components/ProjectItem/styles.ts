@@ -11,19 +11,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginRight: 5,
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  project: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin: 3,
   },
   root: {
     flexDirection: 'row',
     width: '100%',
     root: 10,
+    margin: 3,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: '#404040',
     justifyContent: 'center',
     alignItems: 'center',

@@ -1,37 +1,38 @@
-import { Pressable } from 'react-native';
+import { Pressable, useColorScheme } from 'react-native';
 import React from 'react';
 import styles from './styles';
 import { Text, View } from '../../components/Themed';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation, useSearchParams, useRouter } from 'expo-router';
+import { useSearchParams, useRouter } from 'expo-router';
+import { ProjectType } from '../../types';
 
 interface ProjectItemProps {
   project: {
-    id: string;
-    title: string;
-    createdAt: string;
+    id: string | null | undefined;
+    title: string | null | undefined;
+    createdAt: string | null | undefined;
   };
 }
 
-interface Nav {
-  path: string[];
-}
-
 const ProjectItem = ({ project }: ProjectItemProps) => {
-  const navigation = useNavigation();
+  const scheme = useColorScheme();
   const params = useSearchParams();
   const router = useRouter();
   const { id = project.id } = params;
 
   const onPress = () => {
-    router.push({ pathname: '/todo-screen', params: { id } });
+    router.push({ pathname: '/screens/todo-screen', params: { id } });
   };
   return (
     <Pressable onPress={onPress} style={styles.root}>
       <View style={styles.iconContainer}>
-        <MaterialCommunityIcons name="file-outline" size={24} color="grey" />
+        <MaterialCommunityIcons
+          name="clipboard-edit-outline"
+          size={24}
+          color={scheme === 'dark' ? 'white' : 'black'}
+        />
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={styles.project}>
         <Text style={styles.title}>{project.title}</Text>
         <Text style={styles.time}>{project.createdAt}</Text>
       </View>

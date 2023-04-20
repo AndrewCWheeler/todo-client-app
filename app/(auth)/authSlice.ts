@@ -3,7 +3,7 @@ import type { RootState } from '../store';
 import { verifyToken } from './authAPI';
 
 // Define a type for the slice state
-interface authState {
+interface AuthState {
   user: {
     id: string | null | undefined;
     name: string | null | undefined;
@@ -13,7 +13,7 @@ interface authState {
 }
 
 // Define the initial state using that type
-const initialState: authState = {
+const initialState: AuthState = {
   user: {
     id: null,
     name: null,
