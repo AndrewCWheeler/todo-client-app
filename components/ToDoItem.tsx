@@ -1,38 +1,26 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   useColorScheme,
   TextInput,
+  Alert,
+  Pressable,
+  ActivityIndicator,
 } from 'react-native';
-import { Text, View } from '../Themed';
-import Checkbox from '../Checkbox';
-import { Ionicons } from '@expo/vector-icons';
-import { useMutation, gql } from '@apollo/client';
-
-const UPDATE_TODO = gql`
-  mutation updateToDo($id: ID!, $content: String, $isCompleted: Boolean) {
-    updateToDo(id: $id, content: $content, isCompleted: $isCompleted) {
-      id
-      createdAt
-      content
-      taskList {
-        id
-        title
-        todos {
-          id
-          content
-          isCompleted
-        }
-      }
-    }
-  }
-`;
+import { Text, View } from './Themed';
+import Checkbox from './Checkbox';
+import {
+  Ionicons,
+  AntDesign,
+  MaterialCommunityIcons,
+} from '@expo/vector-icons';
+import { useMutation } from '@apollo/client';
+import { UPDATE_TODO, DELETE_TODO } from '../mutations';
+import { GET_PROJECT } from '../queries';
 
 interface ToDoItemProps {
   todo: {
-    id: string;
+    id: string | null | undefined;
     content: string;
     isCompleted: boolean;
   };
@@ -44,6 +32,7 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   const [content, setContent] = useState('');
   const scheme = useColorScheme();
   const input = useRef<any>();
+  const { id } = todo;
 
   const [updateItem] = useMutation(UPDATE_TODO);
 
@@ -65,6 +54,21 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
     setContent(todo.content);
   }, [todo]);
 
+  const [deleteItem, { data: deletedData, error: deletedError, loading }] =
+    useMutation(DELETE_TODO, {
+      variables: { id: id },
+      refetchQueries: [
+        { query: GET_PROJECT, variables: { id: id } },
+        'getTaskList',
+      ],
+    });
+
+  useEffect(() => {
+    if (deletedError) {
+      Alert.alert(`Error trying to delete item: ${deletedError.message}`);
+    }
+  }, [deletedError]);
+
   useEffect(() => {
     // get focus on input
     if (input.current) {
@@ -73,7 +77,6 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   }, [input]);
 
   const onKeyPress = ({ nativeEvent }: any) => {
-    console.log(nativeEvent);
     if (nativeEvent.key === 'Backspace' && content === '') {
       // Delete item
       console.warn('Delete item');
@@ -81,33 +84,29 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 0}
-      style={{ flex: 1 }}
-    >
-      <View style={styles.container}>
-        <View style={styles.item}>
-          <View style={styles.row}>
-            <Checkbox
-              isChecked={isChecked}
-              onPress={() => {
-                setIsChecked(!isChecked);
-              }}
-            />
-            <TextInput
-              ref={input}
-              value={content}
-              onChangeText={setContent}
-              style={styles.textInput}
-              multiline
-              onSubmitEditing={onSubmit}
-              onEndEditing={callUpdateItem}
-              blurOnSubmit
-              onKeyPress={(e) => onKeyPress(e)}
-            />
-          </View>
-          <View style={styles.smallRow}>
+    <View style={styles.container}>
+      <View style={styles.item}>
+        <View style={styles.row}>
+          <Checkbox
+            isChecked={isChecked}
+            onPress={() => {
+              setIsChecked(!isChecked);
+            }}
+          />
+          <TextInput
+            ref={input}
+            value={content}
+            onChangeText={setContent}
+            style={styles.textInput}
+            multiline
+            onSubmitEditing={onSubmit}
+            onEndEditing={callUpdateItem}
+            blurOnSubmit
+            onKeyPress={(e) => onKeyPress(e)}
+          />
+        </View>
+        <View style={styles.smallRow}>
+          <View style={{ display: 'flex', flexDirection: 'row' }}>
             <View
               style={{ paddingLeft: 33, display: 'flex', flexDirection: 'row' }}
             >
@@ -127,6 +126,7 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
               }}
             >
               <Ionicons
+                style={{ marginLeft: 12 }}
                 name="pricetag-outline"
                 size={12}
                 color={scheme === 'dark' ? 'orange' : 'black'}
@@ -135,9 +135,22 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
               <Text style={{ fontSize: 12, marginLeft: 3 }}>Category</Text>
             </View>
           </View>
+          <Pressable onPress={() => deleteItem()}>
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <MaterialCommunityIcons
+                name="dots-horizontal"
+                size={24}
+                color={scheme === 'dark' ? 'white' : 'black'}
+              />
+
+              // <AntDesign name="delete" size={15} color="red" />
+            )}
+          </Pressable>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -153,11 +166,11 @@ const styles = StyleSheet.create({
   item: {
     display: 'flex',
     flexDirection: 'column',
-    // alignItems: 'flex-start',
     height: 60,
     borderBottomColor: '#3e3e3e',
     borderBottomWidth: 0.5,
-    padding: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
   },
   textInput: {
     flex: 1,
@@ -165,12 +178,14 @@ const styles = StyleSheet.create({
     color: '#eee',
     marginLeft: 9,
     textAlignVertical: 'top',
+    width: '100%',
   },
   row: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 3,
+    width: '85%',
   },
   smallRow: {
     display: 'flex',

@@ -8,16 +8,7 @@ import {
   setProjects,
 } from '../features/project/projectSlice';
 import { useAppDispatch, useAppSelector } from '../hooks';
-
-const MY_PROJECTS = gql`
-  query myTaskLists {
-    myTaskLists {
-      id
-      title
-      createdAt
-    }
-  }
-`;
+import { MY_PROJECTS } from '../../queries';
 
 export default function ProjectScreen() {
   const { projects, status } = useAppSelector(selectAllProjects);

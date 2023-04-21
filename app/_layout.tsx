@@ -52,7 +52,7 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const router = useRouter();
-  const user = useAppSelector(selectUser);
+  // const user = useAppSelector(selectUser);
   const token = useAppSelector(selectToken);
 
   useEffect(() => {
@@ -86,21 +86,25 @@ function RootLayoutNav() {
             options={{
               title: 'ToDo',
               headerShown: true,
-              headerRight: () => (
-                <Pressable onPress={() => Alert.alert('Create New ToDo')}>
-                  {({ pressed }) => (
-                    <AntDesign
-                      name="plus"
-                      size={24}
-                      color={Colors[colorScheme ?? 'light'].text}
-                      style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                    />
-                  )}
-                </Pressable>
-              ),
+              // headerRight: () => (
+              //   <Pressable onPress={() => Alert.alert('Create New ToDo')}>
+              //     {({ pressed }) => (
+              //       <AntDesign
+              //         name="plus"
+              //         size={24}
+              //         color={Colors[colorScheme ?? 'light'].text}
+              //         style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
+              //       />
+              //     )}
+              //   </Pressable>
+              // ),
             }}
           />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+
+          <Stack.Screen
+            name="modal"
+            options={{ headerShown: false, presentation: 'modal' }}
+          />
         </Stack>
       </ThemeProvider>
     </ApolloProvider>
