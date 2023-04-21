@@ -6,10 +6,14 @@ export const GET_PROJECT = gql`
       id
       title
       createdAt
+      progress
       todos {
         id
         content
         isCompleted
+        taskList {
+          id
+        }
       }
     }
   }
@@ -21,10 +25,11 @@ export const MY_PROJECTS = gql`
       id
       title
       createdAt
+      progress
       todos {
         id
         content
-        isCompleted
+        createdAt
       }
     }
   }

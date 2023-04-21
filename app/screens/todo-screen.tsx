@@ -32,8 +32,12 @@ export default function ToDoScreen() {
   });
 
   const [createToDo, { data: createToDoData, error: createToDoError }] =
-    useMutation(CREATE_TODO, { refetchQueries: [{ query: GET_PROJECT }] });
-
+    useMutation(CREATE_TODO, {
+      refetchQueries: [
+        { query: GET_PROJECT, variables: { id: id } },
+        'getTaskList',
+      ],
+    });
   useEffect(() => {
     if (data) {
       setTitle(data.getTaskList.title);

@@ -1,3 +1,4 @@
+// ProjectItem.tsx
 import {
   Pressable,
   useColorScheme,
@@ -5,7 +6,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from './Themed';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { useSearchParams, useRouter } from 'expo-router';
@@ -13,12 +14,14 @@ import * as Progress from 'react-native-progress';
 import { DELETE_TASKLIST } from '../mutations';
 import { useMutation } from '@apollo/client';
 import { MY_PROJECTS } from '../queries';
+import moment from 'moment';
 
 interface ProjectItemProps {
   project: {
     id: string | null | undefined;
     title: string | null | undefined;
-    createdAt: string | null | undefined;
+    createdAt: string;
+    progress: number;
   };
 }
 
@@ -27,8 +30,9 @@ const ProjectItem = ({ project }: ProjectItemProps) => {
   const params = useSearchParams();
   const router = useRouter();
   const { id = project.id } = params;
-
-  const [deleteTaskList, { data, error, loading }] = useMutation(
+  const [createdDate, setCreatedDate] = useState<string>('');
+  const [dueDate, setDueDate] = useState<string>('');
+  const [deleteTaskList, { data: deletedData, error, loading }] = useMutation(
     DELETE_TASKLIST,
     {
       variables: { id: id },
@@ -45,34 +49,58 @@ const ProjectItem = ({ project }: ProjectItemProps) => {
   }, [error]);
 
   useEffect(() => {
-    if (data) {
+    if (deletedData) {
       console.log('Successful Deletion!');
     }
-  }, [data]);
+  }, [deletedData]);
+
+  useEffect(() => {
+    let timestamp = project.createdAt;
+    console.log(typeof project.progress);
+    // *** Date Diff
+    // const now = moment();
+    // const days = now.diff(moment(Number(timestamp)), 'days');
+    // const daysAgo = `${days}d`;
+    // console.log(daysAgo);
+    // *** Future Day (add x days)
+    const futureDate = moment(Number(timestamp))
+      .add(7, 'days')
+      .format('MM-DD-YY');
+    const date = moment(Number(timestamp)).format('MM-DD-YY');
+    setCreatedDate(date);
+    setDueDate(futureDate);
+    // console.log(`Project: ${project.createdAt}`);
+    // console.log(`Formatted Date: ${createdDate}`);
+  }, []);
 
   const onPress = () => {
     router.push({ pathname: '/screens/todo-screen', params: { id } });
   };
   return (
-    <View style={styles.root}>
+    <View style={styles.container}>
       <View style={styles.itemContainer}>
         <Pressable onPress={onPress} style={styles.row}>
-          <View style={styles.contentRow}>
+          <View style={styles.row}>
             <View style={styles.iconContainer}>
               <MaterialCommunityIcons
                 name="clipboard-edit-outline"
-                size={36}
+                size={27}
                 color={scheme === 'dark' ? 'white' : 'black'}
               />
             </View>
             <View style={styles.projectInfo}>
-              <View style={styles.row}>
+              <View style={styles.titleRow}>
                 <Text style={styles.title}>{project.title}</Text>
 
-                {/* <Text style={styles.time}>{project.createdAt}</Text> */}
+                <Text style={styles.time}>{createdDate}</Text>
               </View>
-              <View style={styles.progress}>
-                <Progress.Bar progress={0.3} width={200} color="#1DB954" />
+              <View style={styles.row}>
+                <Progress.Bar
+                  progress={project.progress}
+                  width={200}
+                  color="#1DB954"
+                />
+                {/* <Text style={styles.time}>{dueDate}</Text> */}
               </View>
             </View>
           </View>
@@ -106,8 +134,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 69,
-    marginTop: 3,
+    alignItems: 'center',
+    height: 60,
+    paddingHorizontal: 6,
     borderBottomColor: '#3e3e3e',
     borderBottomWidth: 0.5,
     width: '100%',
@@ -116,17 +145,13 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
   },
-  contentRow: {
+  titleRow: {
     display: 'flex',
     flexDirection: 'row',
-    paddingVertical: 9,
-  },
-  progress: {
-    display: 'flex',
-    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     marginRight: 5,
   },
@@ -135,17 +160,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    margin: 3,
-  },
-  root: {
-    flexDirection: 'row',
-    width: '100%',
-    root: 10,
-    margin: 3,
+    paddingVertical: 3,
   },
   iconContainer: {
-    width: 51,
-    height: 51,
+    width: 39,
+    height: 39,
     backgroundColor: '#404040',
     justifyContent: 'center',
     alignItems: 'center',
@@ -158,5 +177,6 @@ const styles = StyleSheet.create({
   },
   time: {
     color: 'darkgrey',
+    fontSize: 9,
   },
 });

@@ -23,28 +23,22 @@ interface ToDoItemProps {
     id: string | null | undefined;
     content: string;
     isCompleted: boolean;
+    taskList: {
+      id: string;
+    };
   };
   onSubmit: () => void;
 }
 
 const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
-  const [isChecked, setIsChecked] = useState(false);
-  const [content, setContent] = useState('');
+  const [isChecked, setIsChecked] = useState(todo?.isCompleted);
+  const [content, setContent] = useState(todo?.content);
+  const [load, setLoad] = useState(0);
   const scheme = useColorScheme();
   const input = useRef<any>();
   const { id } = todo;
-
-  const [updateItem] = useMutation(UPDATE_TODO);
-
-  const callUpdateItem = () => {
-    updateItem({
-      variables: {
-        id: todo.id,
-        content,
-        isCompleted: isChecked,
-      },
-    });
-  };
+  const { taskList } = todo;
+  // const [createdDate, setCreatedDate] = useState<string>('');
 
   useEffect(() => {
     if (!todo) {
@@ -54,14 +48,16 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
     setContent(todo.content);
   }, [todo]);
 
-  const [deleteItem, { data: deletedData, error: deletedError, loading }] =
-    useMutation(DELETE_TODO, {
-      variables: { id: id },
-      refetchQueries: [
-        { query: GET_PROJECT, variables: { id: id } },
-        'getTaskList',
-      ],
-    });
+  const [
+    deleteItem,
+    { data: deletedData, error: deletedError, loading: deletedLoading },
+  ] = useMutation(DELETE_TODO, {
+    variables: { id: id },
+    refetchQueries: [
+      { query: GET_PROJECT, variables: { id: taskList.id } },
+      'getTaskList',
+    ],
+  });
 
   useEffect(() => {
     if (deletedError) {
@@ -82,23 +78,69 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
       console.warn('Delete item');
     }
   };
+  const [
+    updateCheckedItem,
+    {
+      data: updateCheckData,
+      error: updateCheckError,
+      loading: updateCheckLoading,
+    },
+  ] = useMutation(UPDATE_TODO, {
+    variables: {
+      id: id,
+      content,
+      isCompleted: isChecked,
+    },
+    refetchQueries: [
+      { query: GET_PROJECT, variables: { id: taskList.id } },
+      'getTaskList',
+    ],
+  });
+  const [
+    updateItem,
+    { data: updateData, error: updateError, loading: updateLoading },
+  ] = useMutation(UPDATE_TODO, {
+    variables: {
+      id: id,
+      content,
+      isCompleted: isChecked,
+    },
+    refetchQueries: [
+      { query: GET_PROJECT, variables: { id: taskList.id } },
+      'getTaskList',
+    ],
+  });
+  useEffect(() => {
+    const updateChecked = async () => {
+      try {
+        await updateCheckedItem();
+      } catch (error) {
+        Alert.alert(`Error trying to update item`);
+      }
+    };
+
+    updateChecked();
+  }, [load]);
+
+  const callUpdateItem = () => {
+    updateItem();
+  };
+
+  const handleCheckedUpdate = () => {
+    setIsChecked(!isChecked);
+    load === 0 ? setLoad(1) : setLoad(0);
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.item}>
         <View style={styles.row}>
-          <Checkbox
-            isChecked={isChecked}
-            onPress={() => {
-              setIsChecked(!isChecked);
-            }}
-          />
+          <Checkbox isChecked={isChecked} onPress={handleCheckedUpdate} />
           <TextInput
             ref={input}
             value={content}
             onChangeText={setContent}
-            style={styles.textInput}
-            multiline
+            style={[styles.textInput, isChecked && styles.textInputCompleted]}
             onSubmitEditing={onSubmit}
             onEndEditing={callUpdateItem}
             blurOnSubmit
@@ -136,7 +178,7 @@ const ToDoItem = ({ todo, onSubmit }: ToDoItemProps) => {
             </View>
           </View>
           <Pressable onPress={() => deleteItem()}>
-            {loading ? (
+            {deletedLoading ? (
               <ActivityIndicator />
             ) : (
               <MaterialCommunityIcons
@@ -169,7 +211,8 @@ const styles = StyleSheet.create({
     height: 60,
     borderBottomColor: '#3e3e3e',
     borderBottomWidth: 0.5,
-    paddingVertical: 6,
+    paddingTop: 3,
+    // paddingBottom: 6,
     paddingHorizontal: 12,
   },
   textInput: {
@@ -180,10 +223,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     width: '100%',
   },
+  textInputCompleted: {
+    textDecorationLine: 'line-through',
+  },
   row: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 3,
     width: '85%',
   },

@@ -2,19 +2,11 @@ import { useEffect, useState } from 'react';
 import { View } from '../../components/Themed';
 import { ActivityIndicator, Alert, StyleSheet, FlatList } from 'react-native';
 import ProjectItem from '../../components/ProjectItem';
-import { useQuery, gql } from '@apollo/client';
-import {
-  selectAllProjects,
-  setProjects,
-} from '../features/project/projectSlice';
-import { useAppDispatch, useAppSelector } from '../hooks';
+import { useQuery } from '@apollo/client';
 import { MY_PROJECTS } from '../../queries';
 
 export default function ProjectScreen() {
-  const { projects, status } = useAppSelector(selectAllProjects);
-  const dispatch = useAppDispatch();
-  // const [currProjects, setCurrProjects] = useState([]);
-
+  const [projects, setProjects] = useState([]);
   const { data, error, loading } = useQuery(MY_PROJECTS);
 
   useEffect(() => {
@@ -25,14 +17,14 @@ export default function ProjectScreen() {
 
   useEffect(() => {
     if (data) {
-      dispatch(setProjects(data.myTaskLists));
+      setProjects(data.myTaskLists);
     }
     console.log(data);
   }, [data]);
 
   return (
     <View style={styles.container}>
-      {status === 'loading' ? (
+      {loading ? (
         <ActivityIndicator />
       ) : (
         <FlatList
